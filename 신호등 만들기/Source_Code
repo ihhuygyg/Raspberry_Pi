@@ -1,0 +1,48 @@
+from gpiozero import LED
+from time import sleep
+
+//자동차 신호
+carLedRed = 17                           // 변수 선언과 동시에 값 넣기
+carLedYellow = 3
+carLedGreen = 4
+
+// 보행자 신호
+humanLedRed = 20
+humanLedGreen = 21
+
+try:                                    // 일단 반복문을 실행하고 본다.
+    while 1:                            // 무한루프
+    
+        // 자동차 신호가 초록불일때, 보행자 신호는 빨간불이고 3 초간 유지
+        carLedRed.value = 0             
+        carLedYellow.value = 0
+        carLedGreen.value = 1
+        humanLedRed.value = 1
+        humanLedGreen.value = 0
+        sleep(3.0)
+
+        // 자동차 신호가 노랑불일 때, 보행자 신호는 빨간불이고 1 초간 유지
+        carLedRed.value = 0             
+        carLedYellow.value = 1
+        carLedGreen.value = 0
+        humanLedRed.value = 1
+        humanLedGreen.value = 0
+        sleep(1.0)
+
+        // 자동차 신호가 빨간불일 때, 보행자 신호는 초록불이고 3 초간 유지
+        carLedRed.value = 1             
+        carLedYellow.value = 0
+        carLedGreen.value = 0
+        humanLedRed.value = 0
+        humanLedGreen.value = 1
+        sleep(3.0)
+
+except KeyboardInterrupt:               // 만약 예외가 발생할 경우 모든 신호값 0.
+    pass                                // 예외발생 시 멘트는 없음
+
+        carLedRed.value = 0
+        carLedYellow.value = 0
+        carLedGreen.value = 0
+
+        humanLedRed.value = 0
+        humanLedGreen.value = 0
