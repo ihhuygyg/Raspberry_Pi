@@ -40,9 +40,9 @@ try:                                    // 일단 반복문을 실행하고 본�
 except KeyboardInterrupt:               // 만약 예외가 발생할 경우 모든 신호값 0.
     pass                                // 예외발생 시 멘트는 없음
 
-        carLedRed.value = 0
-        carLedYellow.value = 0
-        carLedGreen.value = 0
+carLedRed.value = 0
+carLedYellow.value = 0
+carLedGreen.value = 0
 
-        humanLedRed.value = 0
-        humanLedGreen.value = 0
+humanLedRed.value = 0
+humanLedGreen.value = 0
