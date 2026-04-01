@@ -1,0 +1,28 @@
+from gpiozero import DigitalInputDevice
+from gpiozero import OutputDevice
+import time
+
+bz = OutputDevice(18)           # 부저 18번핀 사용.
+gas = DigitalInputDevice(17)    # 가스감지모듈 17번핀 사용
+
+try:                            # 일단 실행.
+    while True:                 # 무한반복
+        if gas.value == 0:      # 만약 가스의 밸류가 0인경우 
+            print("High GAS!!") # 가스 농도가 높다는 표시 후
+            bz.on()             # 부저(소리)를 울린다.
+        else:                   # 그게 아니라면
+            print("Low GAS")    # 가스 농도가 낮다고 말하고
+            bz.off()            # 부저(소리)를 끈다.
+
+        time.sleep(0.5)         # if 또는 else 를 실행 후 0.5초간 정지
+
+except KeyboardInterrupt:       # 키보드 ctrl+c 를 누르면 정지 후 부저(소리)를 끔
+    pass                
+
+bz.off()
+
+
+'''
+가스 농도가 높은 경우 0
+가스 농도가 낮은 경우 1
+'''
