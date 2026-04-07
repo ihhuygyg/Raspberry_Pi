@@ -1,0 +1,18 @@
+from gpiozero import MotionSensor   # gpiozero 라이브러리에 모션센서 클래스를 가져옴
+import time                         # time 라이브러리를 가져옴
+
+pirPin = MotionSensor(16)           # GPIO 16번 핀을 PIR 모션 센서 입력 핀으로 초기화함.
+
+try:
+    while True:
+        sensorValue = priPin.value  # priPin의 밸류값을 센서밸류에 대입.
+        print(sensorValue)          # 센서밸류값을 화면에 출력
+        time.sleep(0.1)             # 0.1초 텀을 두고 무한반복.
+
+except KeyboardInterrupt:           # 컨트롤 + C 누르면 멈춤
+    pass통과하다
+
+'''
+움직임을 감지하면 1,
+그렇지 않다면 0을 계속 출력.
+'''
