@@ -15,7 +15,7 @@ try:
         try:
             sensorValue = pirPin.value          # pirPin의 밸류를 센서밸류에 대입
             if sensorValue == 1:                # 센서밸류가 1인 경우 아래 문장 계속실행
-                now = datetime.datetime.now()   # 현재 시간(날짜)을 now에 대
+                now = datetime.datetime.now()   # 현재 시간(날짜)을 now에 대입
                 print(now)                      # 현재시간 출력
                 fileName = now.strftime('%y-%m-%d %H:%M:%S')    # 시각을 파일명 형식 문자열로 변환
                 picam2.capture_file(fileName + '.jpg')          # .jpg를 뒤에 붙임으로써 이미지파일로 촬영 및 저장 
