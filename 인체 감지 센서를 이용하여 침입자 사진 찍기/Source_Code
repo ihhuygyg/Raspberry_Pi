@@ -13,7 +13,7 @@ picam2.start()                     # picam2의 start() 객체를 실행
 try:
     while True:
         try:
-            sensorValue = priPin.value          # priPin의 밸류를 센서밸류에 대입
+            sensorValue = pirPin.value          # pirPin의 밸류를 센서밸류에 대입
             if sensorValue == 1:                # 센서밸류가 1인 경우 아래 문장 계속실행
                 now = datetime.datetime.now()   # 현재 시간(날짜)을 now에 대
                 print(now)                      # 현재시간 출력
