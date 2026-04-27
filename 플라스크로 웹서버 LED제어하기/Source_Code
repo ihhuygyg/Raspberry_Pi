@@ -1,0 +1,29 @@
+from flask import Flask, request, render_template
+from gpiozero import LED
+
+app = Flask(__name__)
+
+red_led = LED(21)
+
+# 기본페이지 접속했을 때 / <- 가 실행됨
+@app.route('/')
+def home():
+    #template 폴더 안의 index.html 파일을 화면에 출력함
+    return render_template("index.html")
+
+#POST 방식으로 data 경로에 요청이 들어왔을 때 실행함.
+@app.route('/data', methods = ['POST'])
+def data():
+    # HTML form에서 'led'라는 이름으로 전달된 값을 받아옴
+    data = request.form['led']
+
+    if(data == 'on'):
+        red_led.on()
+        return home()
+
+    elif(data == 'off'):
+        red_led.off()
+        return home()
+
+if __name__ == '__main__':
+    app.run(host = '0.0.0.0', port = '80')
