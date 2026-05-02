@@ -1,0 +1,23 @@
+import urllib.request, json, tkinter, tkinter.font
+
+API_KEY = "05fd-----------------------------" # 발급받은 API키
+
+def tick1Min():
+    url = f"https://api.openweathermap.org/data/2.5/weather?q=Seoul&appid={API_KEY}&units=metric" # 서울 날씨 데이터를 API Key 인증과 섭씨 기준으로 요청하는 주소
+    with urllib.request.urlopen(url) as r:
+        data = json.loads(r.read())
+    temp = data["main"]["temp"]  # 온도 추출
+    humi = data["main"]["humidity"]  # 습도 추출
+    label.config(text=f"{temp:.1f}C {humi}%")   # 화면에 온습도를 출력
+    window.after(60000, tick1Min)    # 1분마다 실행하여 데이터 갱신
+
+window = tkinter.Tk()                # GUI 창 생성
+window.title("TEMP HUMI DISPLAY")    # 제목 설정
+window.geometry("400x100")           # 사이즈 설정
+window.resizable(False, False)       # 크기 변경 불가 설정
+font = tkinter.font.Font(size=30)    # 글자 크기 
+label = tkinter.Label(window, text="", font=font)    # 출력용 라벨 생성
+label.pack()                         # 화면에 배치
+
+tick1Min()                           # 프로그램 시작 시 최초 실행
+window.mainloop()                    # GUI 프로그램 실행 유지
