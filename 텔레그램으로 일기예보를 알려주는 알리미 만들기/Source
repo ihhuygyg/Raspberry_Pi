@@ -1,0 +1,53 @@
+import urllib.request                           # 웹 요청
+import json                                     # JSON 데이터 처리
+import datetime
+import asyncio
+from telegram import Bot
+
+telegram_id = '봇파더한테 발급받은 아이디 기입'
+my_token = '발급 받은 토큰 기입'
+api_key='오픈웨더맵에서 발급받은 api키 기입'             
+
+bot = Bot(token=my_token)
+
+ALERT_HOURS = [7, 10, 13, 16, 19, 22]
+ALERT_TIMES = ["11:58", "11:59"]
+
+def getWeather():
+    url= f"https://api.openweathermap.org/data/2.5/forecast?q=Seoul&appid={api_key}&units=metric&lang=en&cnt=8" # 서울 24시간 예보 URL
+
+    with urllib.request.urlopen(url) as r:         # API에 요청
+        data = json.loads(r.read())                  # JSON으로 변환
+
+    text= ""                                       # 결과 문자열 초기화
+    for i in range(8):                             # 8개 시간대 순회
+        item = data['list'][i]                       # i번째 날씨 데이터
+        hour = str((int(item['dt_txt'][11:13]) + 9) % 24).zfill(2)                 # 시간 추출
+        temp = item['main']['temp']                   # 기온 추출
+        humi = item['main']['humidity']               # 습도 추출
+        desc = item['weather'][0]['description']      # 날씨 설명 추출
+        text += f"({hour}h {temp}C {humi}% {desc})\n"   # 시간, 기온, 습도, 날씨 설명 추가
+                
+    return text
+
+async def main():
+    try:
+        while True:                                 # 무한반복
+            now = datetime.datetime.now()           # 현재 시간가져오기
+            hm = now.strftime('%H:%M')              # 시간을 시:분 형태로 변환
+
+            # 정각인지 확인    
+            is_alert_hour = now.hour in ALERT_HOURS and now.minute == 0 and now.second == 0
+            # 특정 시간인지 확인
+            is_alert_time = hm in ALERT_TIMES and now.second == 0
+
+            if is_alert_hour or is_alert_time:
+                msg = getWeather()                  # 날씨 정보 가져오
+                print(msg)                          # 화면에 출력
+                await bot.send_message(chat_id=telegram_id, text=msg)   # 텔레그램에 메시지 전송
+
+            await asyncio.sleep(1)                  # 1초마다 반복 확인
+
+    except KeyboardInterrupt:                       # 컨트롤C 누르면 종료 
+        pass
+asyncio.run(main())
