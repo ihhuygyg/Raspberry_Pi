@@ -1,0 +1,46 @@
+import paho.mqtt.client as mqtt
+import time
+from gpiozero import LED
+import threading
+
+greenLed = LED(2)   # 초록불
+blueLed = LED(3)    # 파랑불
+redLed = LED(4)     # 빨강불
+
+# mqtt에서 보낸 메시지를 처리해주는 코드
+def on_message(client, userdata, msg):
+    print(msg.topic+" "+str(msg.payload))
+    message = msg.payload.decode()
+    print(message)
+    if message == "green_on":   # green_on이라고 수신되면 초록불을 켜줌
+        greenLed.on()
+    elif message == "green_off":
+        greenLed.off()
+    elif message == "blue_on":
+        blueLed.on()
+    elif message == "blue_off":
+        blueLed.off()
+    elif message == "red_on":
+        redLed.on()
+    elif message == "red_off":
+        redLed.off()
+
+client = mqtt.Client()
+client.on_message = on_message
+
+broker_address="192.168.0.60"   # 라즈베리파이 ip 기입(네트워크에 따라 바뀜)
+client.connect(broker_address)
+client.subscribe("led",1)       # 토픽 -> led로 지정
+
+count = 0
+def send_thread():
+    global count
+    while 1:                    # 무한반
+        count += 1
+        client.publish("hello", str(count)) # 헬로 토픽 카운트 전송
+        time.sleep(1.0)         # 1초마다 실행
+
+task = threading.Thread(target = send_thread)
+task.start()
+
+client.loop_forever()
