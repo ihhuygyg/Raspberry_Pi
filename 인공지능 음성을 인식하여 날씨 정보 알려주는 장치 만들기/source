@@ -1,0 +1,49 @@
+import speech_recognition as sr       # 음성 인식 라이브러리 (마이크 입력 → 텍스트 변환)
+import requests                       # OpenWeatherMap API 요청
+import os                             # 시스템 명령 실행 (TTS 출력용)
+import time
+
+API_KEY = "Enter Your API Key.."        # OpenWeatherMap에서 발급받은 API Key
+
+# 서울 지역 날씨 데이터를 섭씨 기준으로 요청하는 API 주소
+url = f"https://api.openweathermap.org/data/2.5/weather?q=Seoul&appid={API_KEY}&units=metric"
+
+# 텍스트를 음성으로 출력하는 함수 (espeak 사용)
+def speak(option, msg):
+    os.system("espeak {} '{}'".format(option, msg))
+
+try:
+    while True:                       # 프로그램 계속 실행
+        r = sr.Recognizer()           # 음성 인식 객체 생성
+
+        with sr.Microphone() as source:   # 마이크 입력 받기
+            print("Say something!")
+            audio = r.listen(source)      # 음성 데이터 저장
+
+        try:
+            text = r.recognize_google(audio, language='ko-KR')   # 음성을 한국어 텍스트로 변환
+            print("You said: " + text)
+
+            # "날씨" 관련 단어가 포함되면 실행 (부분 문자열 매칭)
+            if text in "날씨":
+                print("날씨 음성을 인식하였습니다.")
+
+                response = requests.get(url)     # API 호출
+                data = response.json()           # JSON 데이터로 변환
+
+                temp = data["main"]["temp"]      # 현재 온도 추출
+                humi = data["main"]["humidity"]  # 현재 습도 추출
+
+                # 출력할 음성 메시지 생성
+                msg = ' 기온은 ' + str(int(temp)) + '도 습도는 ' + str(humi) + '퍼센트 입니다'
+
+                option = '-s 180 -p 50 -a 200 -v ko+f5'   # 음성 속도, 톤, 볼륨 설정
+                speak(option, msg)                        # 음성 출력 실행
+
+        except sr.UnknownValueError:  
+            print("음성을 인식하지 못했습니다.")   # 음성 인식 실패
+        except sr.RequestError as e:
+            print("요청 실패: {0}".format(e))     # Google API 오류
+
+except KeyboardInterrupt:
+    pass   # Ctrl+C 입력 시 프로그램 종료
