@@ -1,0 +1,56 @@
+import cv2                                            # OpenCV 라이브러리 불러오기
+
+cascade_filename = 'haarcascade_frontalface_alt.xml'  # Haar Cascade 모델 파일 경로
+cascade = cv2.CascadeClassifier(cascade_filename)     # 얼굴 탐지 분류기 객체 생성
+
+MODEL_MEAN_VALUES = (78.4263377603, 87.7689143744, 114.895847746)  # BGR 채널별 평균값 (이미지 정규화용)
+
+age_net = cv2.dnn.readNetFromCaffe(                   # 나이 예측 모델 불러오기
+  'deploy_age.prototxt',                              # 모델 구조 파일
+  'age_net.caffemodel')                               # 학습된 가중치 파일
+
+gender_net = cv2.dnn.readNetFromCaffe(                # 성별 예측 모델 불러오기
+  'deploy_gender.prototxt',                           # 모델 구조 파일
+  'gender_net.caffemodel')                            # 학습된 가중치 파일
+
+age_list = ['(0 ~ 2)','(4 ~ 6)','(8 ~ 12)','(15 ~ 20)',  # 나이 예측 결과 레이블
+            '(25 ~ 32)','(38 ~ 43)','(48 ~ 53)','(60 ~ 100)']  # (8개 나이 구간)
+gender_list = ['Male', 'Female']                              # 성별 예측 결과 레이블 (2개 클래스)
+
+def main():
+  camera = cv2.VideoCapture(-1)
+  camera.set(3, 640)                                  # 웹캠 가로 해상도 640px 설정
+  camera.set(4, 480)                                  # 웹캠 세로 해상도 480px 설정
+  while(camera.isOpened()):                           # 카메라가 열려 있는 동안 반복
+    _, img = camera.read()                            # 웹캠에서 프레임 1장 읽기
+    img = cv2.resize(img, dsize=None, fx=1.0, fy=1.0) # 이미지 크기 조정 (현재 배율 1.0 = 원본 유지)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)      # 컬러 이미지를 흑백으로 변환
+    results = cascade.detectMultiScale(gray,          # 얼굴 탐지 실행 (흑백 이미지 입력)
+                                       scaleFactor=1.1,   # 이미지 피라미드 축소 비율 (10%씩)
+                                       minNeighbors=5,    # 얼굴 인정을 위한 최소 인접 탐지 횟수
+                                       minSize=(20, 20))  # 웹캠 연결 (-1: 첫 번째 카메라 자동 선택)  # 탐지할 얼굴의 최소 크기 (픽셀)
+
+    for box in results:                                   # 탐지된 얼굴 박스 하나씩 순회
+      x, y, w, h = box                                    # 박스 좌표 분리 (x,y: 좌상단 / w: 너비 / h: 높이)
+      face = img[int(y):int(y+h), int(x):int(x+h)].copy() # 버그: x+h → x+w 가 올바름. 얼굴 영역 잘라내기
+      blob = cv2.dnn.blobFromImage(face, 1, (227, 227), MODEL_MEAN_VALUES,  # 얼굴을 모델 입력 형식으로 변환
+                                   swapRB=False)                            # 227x227 리사이즈, 평균값 정규화, BGR 유지
+      gender_net.setInput(blob)                                             # 성별 모델에 이미지 입력
+      gender_preds = gender_net.forward()                                   # 성별 추론 실행 → 클래스별 확률 반환
+      gender = gender_preds.argmax()                                        # 가장 높은 확률 인덱스 선택 (0=Male, 1=Female)
+      age_net.setInput(blob)                                                # 나이 모델에 이미지 입력
+      age_preds = age_net.forward()                                         # 나이 추론 실행 → 클래스별 확률 반환
+      age = age_preds.argmax()                                              # 가장 높은 확률 인덱스 선택 (0~7)
+      info = gender_list[gender] + ' ' + age_list[age]                      # 성별 + 나이 문자열 합치기 ex) "Male (25 ~ 32)"
+      cv2.rectangle(img, (x, y), (x+w, y+h), (255, 255, 255), thickness=2)  # 얼굴에 흰색 사각형 그리기
+      cv2.putText(img, info, (x, y-15), 0, 0.5, (0, 255, 0), 1)             # 사각형 위에 초록색 텍스트 표시
+
+    cv2.imshow('facenet', img)                                              # 결과 이미지를 'facenet' 창에 표시
+
+    if cv2.waitKey(1) == ord('q'):                    # 1ms 대기 후 'q' 키 입력 감지
+      break                                           # 'q' 누르면 루프 종료
+
+  cv2.destroyAllWindows()                             # 모든 OpenCV 창 닫기
+
+if __name__ == '__main__':                            # 스크립트 직접 실행 시 main() 호출
+  main()
