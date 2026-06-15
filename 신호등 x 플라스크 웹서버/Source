@@ -1,0 +1,51 @@
+from flask import Flask, request, render_template  # Flask 웹 서버 관련 모듈
+from gpiozero import LED                           # GPIO 제어를 위한 gpiozero 라이브러리
+from gpiozero import LEDBoard
+from time import sleep                             # 시간 지연 함수
+
+leds = LEDBoard(2, 3, 4, 20, 16)                   # GPIO 2, 3, 4, 20, 16번 핀에 연결된 LED들을 하나의 보드로 묶음
+
+try:
+    while 1:                                       # 무한 반복
+        leds.value = (0, 0, 1, 1, 0)               # LED 상태 설정 (3번째, 4번째 LED ON)
+        sleep(3.0)                                 # 3초 대기
+
+        # LED 상태 변경 (2번째, 4번째 LED ON)
+        leds.value = (0, 1, 0, 1, 0)
+        sleep(1.0)                                 # 1초 대기
+
+        # LED 상태 변경 (1번째, 5번째 LED ON)
+        leds.value = (1, 0, 0, 0, 1)
+        sleep(3.0)                                 # 3초 대기
+
+except KeyboardInterrupt:                          # Ctrl+C 입력 시 예외 처리
+    pass
+
+leds.off()                                         # 프로그램 종료 시 모든 LED 끄기
+
+app = Flask(__name__)                              # Flask 애플리케이션 생성
+
+red_led = LED(21)                                  # GPIO 21번 핀에 연결된 빨간 LED 객체 생성
+
+@app.route('/')                                    # 메인 페이지 접속 시 index.html 반환
+def home():
+    return render_template("index.html")
+
+@app.route('/data', methods=['POST'])              # '/data' 주소로 POST 요청이 들어왔을 때 실행
+def data():
+
+    data = request.form['led']                     # HTML 폼에서 전달된 led 값 읽기
+
+    if(data == 'on'):                              # 사용자가 'on'을 선택한 경우
+        red_led.on()                               # LED 켜기
+        return home()                              # 홈 화면으로 이동
+
+    elif(data == 'off'):                           # 사용자가 'off'를 선택한 경우
+        red_led.off()                              # LED 끄기
+        return home()                              # 홈 화면으로 이동
+
+if __name__ == '__main__':                         # 이 파일을 직접 실행했을 때만 Flask 서버 실행
+    app.run(
+        host='0.0.0.0',                            # 모든 IP에서 접속 허용
+        port='80'                                  # 80번 포트 사용
+    )
